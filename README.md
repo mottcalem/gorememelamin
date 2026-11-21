@@ -1,6 +1,6 @@
 # Göreme Melamin
 
-Türkçe B2B ürün kataloğu ve teklif prototipi. React 19, TypeScript, Vite, Tailwind CSS, Lucide ve Radix Dialog kullanır.
+Türkçe B2B ürün kataloğu ve teklif listesi. React 19, TypeScript, Vite, Tailwind CSS, Lucide ve Radix Dialog kullanır.
 
 ## Çalıştırma
 
@@ -17,11 +17,9 @@ Ana sayfa, ürün kataloğu, kategori/ürün detayları, teklif listesi ve formu
 
 ## İçerik ve entegrasyon
 
-24 ürünün verisi `src/data/catalog.ts` içinde merkezidir. İlk 12 ürünün adları ve SKU bilgileri mevcut markanın sunum kaseleri listesinden alınmıştır. DEMO kodlu diğer ürünler örnektir. **Tüm teknik özellikler demo veridir** ve arayüzde işaretlidir. Fotoğraflar markanın mevcut sitesinden alınmıştır; demo ürünlerin fotoğrafları temsilidir.
+Ürün verileri `src/data/products.json` dosyasında tutulur. Katalog Excel’deki yayımlanmış ürün ve varyant kayıtlarını ayrı kartlar olarak gösterir. Ürün görselleri kaynak URL’lerinden yüklenir.
 
-`src/QuotePage.tsx` içindeki `quoteService.submit` gerçek API entegrasyonunun giriş noktasıdır. Şu anda hiçbir form verisi gönderilmez; demo başarı durumu gösterilir. Katalog bağlantıları resmî katalog sayfasına gider. Hukuki sayfalar prototip bilgilendirme metinleridir.
-
-SEO meta title, description, canonical ve fiyat içermeyen Product JSON-LD istemci tarafında oluşturulur. Üretim yayını için SSR/prerender, doğrulanmış teknik veriler ve gerçek teklif API'si eklenmelidir. Hosting SPA rotalarını index.html'e yönlendirmelidir.
+Teklif listesi tarayıcıda saklanır. Teklif ve iletişim bağlantıları kullanıcının e-posta uygulamasını açar. Üretim derlemesi `dist/` klasöründedir. Sunucu, doğrudan açılan uygulama rotalarını `index.html` dosyasına yönlendirmelidir.
 
 ## Test
 
@@ -30,9 +28,9 @@ npm run dev
 npm test
 ```
 
-Playwright testleri arama, varyasyon birleştirme, localStorage kalıcılığı, demo talep, URL filtreleri ve mobil gezinmeyi doğrular. Yapılandırmada macOS Google Chrome yolu tanımlıdır; başka ortamda `launchOptions.executablePath` kaldırılıp `npx playwright install chromium` çalıştırılabilir.
+Playwright testleri arama, varyasyon birleştirme, localStorage kalıcılığı, e-posta akışı, URL filtreleri ve mobil gezinmeyi doğrular. Yapılandırmada macOS Google Chrome yolu tanımlıdır; başka ortamda `launchOptions.executablePath` kaldırılıp `npx playwright install chromium` çalıştırılabilir.
 
-Kaynak: https://gorememelamin.com.tr/ ve sunum kaseleri kategorisi.
+Kaynak: https://gorememelamin.com.tr/ ve ürün Excel dosyası.
 
 ## Hero videosu
 
