@@ -19,7 +19,7 @@ Ana sayfa, ürün kataloğu, kategori/ürün detayları, teklif listesi ve formu
 
 Ürün verileri `src/data/products.json` dosyasında tutulur. Katalog Excel’deki yayımlanmış ürün ve varyant kayıtlarını ayrı kartlar olarak gösterir. Ürün görselleri kaynak URL’lerinden yüklenir.
 
-Teklif listesi tarayıcıda saklanır. Teklif ve iletişim bağlantıları kullanıcının e-posta uygulamasını açar. Üretim derlemesi `dist/` klasöründedir. Sunucu, doğrudan açılan uygulama rotalarını `index.html` dosyasına yönlendirmelidir.
+Teklif listesi tarayıcıda saklanır. Teklif formu SMTP bağlanana kadar yalnızca sayfa içinde bir onay gösterir. İletişim bağlantıları kullanıcının e-posta uygulamasını açar. Üretim derlemesi `dist/` klasöründedir. Sunucu, doğrudan açılan uygulama rotalarını `index.html` dosyasına yönlendirmelidir.
 
 ## Test
 

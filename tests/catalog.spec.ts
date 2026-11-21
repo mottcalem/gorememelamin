@@ -4,7 +4,17 @@ test.beforeEach(async ({context}) => {
   await context.route(/^https?:\/\/(?!127\.0\.0\.1:5173\/)/, route => route.abort());
 });
 
-test('ürün arama, varyantlar ve teklif listesi kalıcılığı',async({page})=>{await page.goto('/');await expect(page.getByRole('heading',{level:1})).toContainText('Profesyonel');await page.getByRole('button',{name:'Ürün ara',exact:true}).click();await page.getByPlaceholder('Ürün adı, SKU, kategori veya seri ara…').fill('696-W');await page.getByRole('link',{name:/Termostar Honey Bowl No 1/}).click();await page.getByRole('button',{name:'Teklif Listesine Ekle',exact:true}).first().click();await expect(page.getByRole('dialog')).toBeVisible();await page.getByRole('button',{name:'Ürünleri İncelemeye Devam Et'}).click();await page.getByRole('button',{name:'Teklif Listesine Ekle',exact:true}).first().click();await page.getByRole('button',{name:'Ürünleri İncelemeye Devam Et'}).click();await page.getByRole('link',{name:'Siyah',exact:true}).click();await page.getByRole('button',{name:'Teklif Listesine Ekle',exact:true}).first().click();await page.getByRole('link',{name:'Teklif Listesine Git',exact:true}).click();await expect(page.locator('.quote-row')).toHaveCount(2);await expect(page.locator('.quote-row input').first()).toHaveValue('2');await page.reload();await expect(page.locator('.quote-row')).toHaveCount(2);await expect(page.getByRole('button',{name:'Talebi E-postada Aç'})).toBeEnabled();});
+test('ürün arama, varyantlar ve teklif listesi kalıcılığı',async({page})=>{await page.goto('/');await expect(page.getByRole('heading',{level:1})).toContainText('Profesyonel');await page.getByRole('button',{name:'Ürün ara',exact:true}).click();await page.getByPlaceholder('Ürün adı, SKU, kategori veya seri ara…').fill('696-W');await page.getByRole('link',{name:/Termostar Honey Bowl No 1/}).click();await page.getByRole('button',{name:'Teklif Listesine Ekle',exact:true}).first().click();await expect(page.getByRole('dialog')).toBeVisible();await page.getByRole('button',{name:'Ürünleri İncelemeye Devam Et'}).click();await page.getByRole('button',{name:'Teklif Listesine Ekle',exact:true}).first().click();await page.getByRole('button',{name:'Ürünleri İncelemeye Devam Et'}).click();await page.getByRole('link',{name:'Siyah',exact:true}).click();await page.getByRole('button',{name:'Teklif Listesine Ekle',exact:true}).first().click();await page.getByRole('link',{name:'Teklif Listesine Git',exact:true}).click();await expect(page.locator('.quote-row')).toHaveCount(2);await expect(page.locator('.quote-row input').first()).toHaveValue('2');await page.reload();await expect(page.locator('.quote-row')).toHaveCount(2);const submit=page.getByRole('button',{name:'Fiyat Teklifi Al'});
+  await submit.click();
+  await expect(page.getByRole('status')).toHaveCount(0);
+  await page.getByLabel('Firma Adı').fill('Örnek Firma');
+  await page.getByLabel('Yetkili Adı Soyadı').fill('Deneme Kullanıcısı');
+  await page.getByLabel('E-posta',{exact:false}).fill('test@example.com');
+  await page.getByLabel('Telefon').fill('05550000000');
+  await submit.click();
+  await expect(page.getByRole('status')).toContainText('E-postanız gönderildi.');
+  await expect(page.getByRole('status')).toContainText('Teklif talebinizi değerlendirip size dönüş yapacağız.');
+  await expect(page).toHaveURL(/teklif-listem$/);});
 
 test('filtre URL, liste görünümü ve boş sonuç',async({page})=>{await page.goto('/urunler');await expect(page.locator('.product-card')).toHaveCount(12);await page.getByLabel('Termostar',{exact:true}).click();await expect(page.getByLabel('Termostar',{exact:true})).toBeChecked();await expect(page).toHaveURL(/seri=Termostar/);await page.reload();await expect(page.getByLabel('Termostar',{exact:true})).toBeChecked();await page.getByRole('button',{name:'Liste görünümü'}).click();await expect(page.locator('.product-grid')).toHaveClass(/list-view/);await page.goto('/kategori/acik-bufe-sunum-ekipmanlari?alt-kategori=Sunum+Kaseleri');
 await expect(page.getByText('140 ürün bulundu')).toBeVisible();
@@ -43,4 +53,32 @@ test('677 ürün ailesi ayrı kartlarda ve doğru SKU ile teklif listesinde', as
   await page.getByRole('link',{name:'Teklif Listesine Git'}).click();
   await expect(page.locator('.quote-row')).toContainText('SKU: 677-R');
   await expect(page.locator('.quote-row img')).toHaveAttribute('src', /677-R\.png$/);
+});
+
+test('mobilde renk değişimi kaydırma konumunu ve teklif adedini korur', async ({page}) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/urun/termostar-acik-bufe-sunum-31r-varyant-686-w-13898');
+  await page.locator('#quantity').fill('3');
+
+  const swatches=page.locator('.swatch-options');
+  const black=swatches.getByRole('link',{name:'Siyah',exact:true});
+  await black.evaluate(element=>element.scrollIntoView({block:'center',behavior:'instant'}));
+  const scrollY=await page.evaluate(()=>window.scrollY);
+  expect(scrollY).toBeGreaterThan(0);
+
+  await black.click();
+  await expect(page).toHaveURL(/686-b-13899$/);
+  await expect(black).toHaveAttribute('aria-current','page');
+  await expect(page.locator('.detail-copy .sku')).toHaveText('SKU: 686-B');
+  await expect(page.locator('.detail-image img')).toHaveAttribute('src', /686-B\.png$/);
+  await expect(page.locator('#quantity')).toHaveValue('3');
+  expect(await page.evaluate(()=>window.scrollY)).toBeCloseTo(scrollY,0);
+
+  await swatches.getByRole('link',{name:'Kırmızı',exact:true}).click();
+  await expect(page).toHaveURL(/686-r-13900$/);
+  await expect(page.locator('.detail-copy .sku')).toHaveText('SKU: 686-R');
+  expect(await page.evaluate(()=>window.scrollY)).toBeCloseTo(scrollY,0);
+
+  await page.locator('.mobile-product-add').getByRole('button').click();
+  await expect(page.getByRole('dialog')).toContainText('SKU: 686-R · Kırmızı · 3 adet eklendi');
 });

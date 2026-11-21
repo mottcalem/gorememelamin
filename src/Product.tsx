@@ -26,7 +26,7 @@ function ColorSwatch({color,image}:{color:string;image?:string}) {
 }
 
 export function ProductDetail(){const {slug}=useParams();const p=productsBySlug.get(slug??'');if(!p)return <main className="container page empty"><h1>Ürün bulunamadı</h1><Link className="button" to="/urunler">Tüm Ürünlere Dön</Link></main>
-  return <ProductContent key={p.id} product={p}/>;
+  return <ProductContent key={p.familyId??p.id} product={p}/>;
 }
 
 function ProductContent({product:p}:{product:Product}) {
@@ -34,6 +34,12 @@ function ProductContent({product:p}:{product:Product}) {
   const [quantity,setQuantity]=useState(1);
   const [tab,setTab]=useState('Teknik Özellikler');
   const [image,setImage]=useState(p.images[0]);
+  const [activeProductId,setActiveProductId]=useState(p.id);
+  if (activeProductId!==p.id) {
+    setActiveProductId(p.id);
+    setSelection(p.selections[0]?.label??'');
+    setImage(p.images[0]);
+  }
   const option=p.selections.find(item=>item.label===selection);
   const images=p.images;
   const variants=variantsByFamily.get(p.familyId??p.id)??[];
