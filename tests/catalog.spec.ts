@@ -82,3 +82,47 @@ test('mobilde renk değişimi kaydırma konumunu ve teklif adedini korur', async
   await page.locator('.mobile-product-add').getByRole('button').click();
   await expect(page.getByRole('dialog')).toContainText('SKU: 686-R · Kırmızı · 3 adet eklendi');
 });
+
+test('dil seçimi mevcut ürünü, filtreleri ve teklif listesini korur', async ({page}) => {
+  await page.setViewportSize({width:390,height:844});
+  const productPath='/urun/termostar-acik-bufe-sunum-31r-varyant-686-w-13898';
+  await page.goto(productPath+'?kaynak=katalog');
+  const languageButton=page.getByRole('button',{name:/^Dil ·/});
+  await languageButton.click();
+  await expect(languageButton).toHaveAttribute('aria-expanded','true');
+  const flags=page.locator('.language-options img');
+  await expect(flags).toHaveCount(3);
+  await expect(page.locator('.language-options').getByRole('link',{name:'Türkçe',exact:true})).toHaveCount(0);
+  await expect.poll(()=>flags.evaluateAll(images=>images.every(image=>image instanceof HTMLImageElement&&image.complete&&image.naturalWidth>0))).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(languageButton).toHaveAttribute('aria-expanded','false');
+  await expect(languageButton).toBeFocused();
+  await languageButton.click();
+  await page.getByRole('link',{name:'English',exact:true}).click();
+  await expect(page).toHaveURL('/en'+productPath+'?kaynak=katalog');
+  await expect(page.locator('html')).toHaveAttribute('lang','en');
+  await expect(page.getByRole('heading',{level:1})).toHaveText('Termostar 31R Buffet Serving Plate');
+  await page.getByRole('link',{name:'Black',exact:true}).click();
+  await expect(page).toHaveURL(/\/en\/urun\/.*686-b-13899$/);
+  await expect(page.locator('.detail-copy .sku')).toHaveText('SKU: 686-B');
+  await page.locator('.mobile-product-add').getByRole('button').click();
+  await page.getByRole('dialog').getByRole('link').click();
+
+  await page.getByRole('button',{name:/^Language ·/}).click();
+  await page.getByRole('link',{name:'العربية',exact:true}).click();
+  await expect(page).toHaveURL('/ar/teklif-listem');
+  await expect(page.locator('html')).toHaveAttribute('dir','rtl');
+  await expect(page.locator('.quote-row')).toContainText('686-B');
+  await expect(page.getByRole('button',{name:'اطلب عرض سعر'})).toBeVisible();
+
+  await page.goto('/ar/urunler?q='+encodeURIComponent('معدات تقديم البوفيه'));
+  await expect(page.locator('.product-card').first()).toBeVisible();
+  await expect(page.locator('.catalog-toolbar')).toContainText('عدد المنتجات المطابقة');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+  await page.getByRole('button',{name:/^اللغة ·/}).click();
+  await page.getByRole('link',{name:'Dansk',exact:true}).click();
+  await expect(page).toHaveURL(/\/da\/urunler\?q=/);
+  await expect(page.locator('html')).toHaveAttribute('dir','ltr');
+  await expect(page.locator('html')).toHaveAttribute('lang','da');
+  await expect(page.getByRole('heading',{level:1})).toHaveText('Alle produkter');
+});

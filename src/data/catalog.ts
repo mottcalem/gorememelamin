@@ -1,3 +1,4 @@
+import {language,t,optionText} from '../i18n';
 import catalogRows from './products.json';
 
 export const slugify=(s:string)=>s.toLocaleLowerCase('tr').replaceAll('ı','i').replaceAll('ğ','g').replaceAll('ü','u').replaceAll('ş','s').replaceAll('ö','o').replaceAll('ç','c').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
@@ -136,15 +137,24 @@ for (const product of products) {
 export const subcategories = [...new Map(products.flatMap(product => product.subcategories).map(sub => [sub.parentId + '/' + sub.name, sub])).values()];
 export const categoryName=(id:string)=>categories.find(c=>c.id===id)?.name||id;
 export const normalize=(s:string)=>slugify(s).replaceAll('-',' ');
+const searchText=(value:string)=>language==='tr' ? normalize(value) :
+  value.toLocaleLowerCase(language).normalize('NFKD').replace(/\p{M}/gu,'').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+const searchStem=(value:string)=>language==='tr' ?
+  value.replace(/kaseleri|kasesi/g,'kase').replace(/tepsileri|tepsisi/g,'tepsi').replace(/tabaklari|tabagi/g,'tabak') : value;
 export function searchProducts(query:string){
- const term = query.trim();
- const exactSku = products.filter(product => product.sku && product.sku.toLowerCase() === term.toLowerCase());
- if (exactSku.some(product => product.familyId)) return exactSku;
- const normalized = normalize(term);
- const exactName = normalized ? products.filter(product => normalize(product.name) === normalized) : [];
- if (exactName.length) return exactName;
- const words=normalized.split(/\s+/).filter(Boolean).map(w=>w.replace(/kaseleri|kasesi/g,'kase').replace(/tepsileri|tepsisi/g,'tepsi').replace(/tabaklari|tabagi/g,'tabak'));
- return products.filter(p=>{const text=normalize([p.name,p.sku,...p.categoryIds.map(categoryName),...p.subcategories.map(sub=>sub.name),p.series,p.variantLabel].join(' ')).replace(/kaseleri|kasesi/g,'kase').replace(/tepsileri|tepsisi/g,'tepsi').replace(/tabaklari|tabagi/g,'tabak');return words.every(w=>text.includes(w))});
+  const term=query.trim();
+  const exactSku=products.filter(product=>product.sku&&product.sku.toLowerCase()===term.toLowerCase());
+  if (exactSku.some(product=>product.familyId)) return exactSku;
+  const normalized=searchText(term);
+  if (!normalized) return products;
+  const exactName=products.filter(product=>searchText(product.name)===normalized||searchText(t(product.name))===normalized);
+  if (exactName.length) return exactName;
+  const words=searchStem(normalized).split(/\s+/);
+  return products.filter(product=>{
+    const labels=[product.name,...product.categoryIds.map(categoryName),...product.subcategories.map(sub=>sub.name),product.series,product.variantLabel??'',...product.colors];
+    const text=searchStem(searchText([product.sku,...labels,...labels.map(optionText)].join(' ')));
+    return words.every(word=>text.includes(word));
+  });
 }
 export const sectors=['Oteller','Restoranlar','Kafeler','Catering Firmaları','Profesyonel Mutfaklar','Hastaneler'];
 export const sectorCategories=[0,5,3,9,4,8];
